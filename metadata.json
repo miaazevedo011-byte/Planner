@@ -1,0 +1,8 @@
+{
+  "name": "Planner Mensal",
+  "description": "A tactile, hand-bound bullet journal and artisanal planner with washi tape, dot-grid spreads, habit trackers, and AI reflection prompts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
