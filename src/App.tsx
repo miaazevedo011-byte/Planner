@@ -5,7 +5,8 @@ import { BudgetSpreadsheet } from './components/BudgetSpreadsheet';
 import { NotesView } from './components/NotesView';
 import { ShoppingListView } from './components/ShoppingListView';
 import { PiggyAssistant } from './components/PiggyAssistant';
-import { Calendar, FileText, ShoppingCart } from 'lucide-react';
+import { StickerSystem } from './components/StickerSystem';
+import { Calendar, FileText, ShoppingCart, Palette } from 'lucide-react';
 
 export default function App() {
   const [viewState, setViewState] = useState<ViewState>('home');
@@ -75,47 +76,58 @@ export default function App() {
 
             {/* Quick Badge */}
             <div className="hidden lg:block text-right">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#E08775] block">Ano Selecionado</span>
-              <span className="text-sm font-heading font-bold text-[#1F1B14]">{selectedYear}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#E08775] block">Decorar Diário</span>
+              <span className="text-sm font-heading font-bold text-[#3B6E52] flex items-center space-x-1 justify-end">
+                <Palette className="w-4 h-4 text-[#E08775]" />
+                <span>Adesivos Habilitados</span>
+              </span>
             </div>
 
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
+      {/* Main Content Area Wrapped with StickerSystem */}
       <main className="flex-1">
         {viewState === 'home' && (
-          <HomeCalendar
-            selectedYear={selectedYear}
-            onSelectYear={setSelectedYear}
-            onSelectMonth={handleSelectMonth}
-            onOpenNotes={() => setViewState('notes')}
-            onOpenShopping={handleOpenShopping}
-          />
+          <StickerSystem viewKey={`home_${selectedYear}`}>
+            <HomeCalendar
+              selectedYear={selectedYear}
+              onSelectYear={setSelectedYear}
+              onSelectMonth={handleSelectMonth}
+              onOpenNotes={() => setViewState('notes')}
+              onOpenShopping={handleOpenShopping}
+            />
+          </StickerSystem>
         )}
 
         {viewState === 'spreadsheet' && (
-          <BudgetSpreadsheet
-            year={selectedYear}
-            monthIndex={selectedMonthIndex}
-            onBack={() => setViewState('home')}
-          />
+          <StickerSystem viewKey={`spreadsheet_${selectedYear}_${selectedMonthIndex}`}>
+            <BudgetSpreadsheet
+              year={selectedYear}
+              monthIndex={selectedMonthIndex}
+              onBack={() => setViewState('home')}
+            />
+          </StickerSystem>
         )}
 
         {viewState === 'notes' && (
-          <NotesView
-            onBack={() => setViewState('home')}
-          />
+          <StickerSystem viewKey="notes">
+            <NotesView
+              onBack={() => setViewState('home')}
+            />
+          </StickerSystem>
         )}
 
         {viewState === 'shopping' && (
-          <ShoppingListView
-            year={selectedYear}
-            monthIndex={selectedMonthIndex}
-            onBack={() => setViewState('home')}
-            onMonthChange={setSelectedMonthIndex}
-          />
+          <StickerSystem viewKey={`shopping_${selectedYear}_${selectedMonthIndex}`}>
+            <ShoppingListView
+              year={selectedYear}
+              monthIndex={selectedMonthIndex}
+              onBack={() => setViewState('home')}
+              onMonthChange={setSelectedMonthIndex}
+            />
+          </StickerSystem>
         )}
       </main>
 

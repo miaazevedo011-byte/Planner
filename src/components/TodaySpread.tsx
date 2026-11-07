@@ -68,7 +68,7 @@ export const TodaySpread: React.FC<TodaySpreadProps> = ({
   };
 
   const handleRemoveGratitude = (index: number) => {
-    const updated = journal.gratitude.filter((_, i) => i !== index);
+    const updated = journal.gratitude.filter((_: string, i: number) => i !== index);
     onUpdateJournal({ ...journal, gratitude: updated });
   };
 
@@ -290,7 +290,7 @@ export const TodaySpread: React.FC<TodaySpreadProps> = ({
               </form>
 
               <ul className="space-y-2.5">
-                {journal.gratitude.map((item, idx) => (
+                {journal.gratitude.map((item: string, idx: number) => (
                   <li key={idx} className="flex items-center justify-between text-sm bg-[#F5EFEB]/70 p-2.5 rounded-xl border border-[#EDE4D8]">
                     <span className="text-[#1F1B14] flex items-center space-x-2">
                       <span className="text-[#E08775]">•</span>
