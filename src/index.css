@@ -17,6 +17,63 @@
   background-size: 24px 24px;
 }
 
+.bg-dot-grid-dark {
+  background-image: radial-gradient(#4a5468 1.4px, transparent 1.4px);
+  background-size: 24px 24px;
+}
+
+.bg-lined-grid {
+  background-image: repeating-linear-gradient(transparent, transparent 27px, #e2d9cd 28px);
+  background-size: 100% 28px;
+}
+
+.bg-lined-grid-dark {
+  background-image: repeating-linear-gradient(transparent, transparent 27px, #364156 28px);
+  background-size: 100% 28px;
+}
+
+.bg-plain-paper {
+  background-color: #fff8f2;
+}
+
+.bg-plain-dark {
+  background-color: #12141a;
+}
+
+.bg-botanical-pattern {
+  background-image: radial-gradient(#c0c9c1 1px, transparent 1px), radial-gradient(#d5ded6 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+}
+
+.bg-botanical-dark {
+  background-image: radial-gradient(#3a493e 1.2px, transparent 1.2px), radial-gradient(#2b3b2e 1.2px, transparent 1.2px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+}
+
+.bg-kraft-paper {
+  background-color: #f4ece0;
+  background-image: radial-gradient(#e0d4c3 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-kraft-dark {
+  background-color: #1d1714;
+  background-image: radial-gradient(#382c26 1.2px, transparent 1.2px);
+  background-size: 20px 20px;
+}
+
+.bg-grid-school {
+  background-image: linear-gradient(to right, #e2d9cd 1px, transparent 1px), linear-gradient(to bottom, #e2d9cd 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-grid-dark {
+  background-image: linear-gradient(to right, #2a3447 1px, transparent 1px), linear-gradient(to bottom, #2a3447 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
 .paper-card {
   background-color: #FDFBF7;
   border: 1.5px solid #EDE4D8;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { monthNames } from '../utils/finance';
-import { Calendar, FileText, ShoppingCart, DollarSign, Sparkles, Heart, ChevronRight } from 'lucide-react';
+import { Calendar, FileText, ShoppingCart, DollarSign, Sparkles, Heart, ChevronRight, Palette, Clock, UtensilsCrossed } from 'lucide-react';
 
 interface HomeCalendarProps {
   selectedYear: number;
@@ -8,6 +8,10 @@ interface HomeCalendarProps {
   onSelectMonth: (monthIndex: number) => void;
   onOpenNotes: () => void;
   onOpenShopping: () => void;
+  onOpenRecipes: () => void;
+  onOpenStickers: () => void;
+  onOpenSettings: () => void;
+  weatherDescription?: string;
 }
 
 export const HomeCalendar: React.FC<HomeCalendarProps> = ({
@@ -16,12 +20,16 @@ export const HomeCalendar: React.FC<HomeCalendarProps> = ({
   onSelectMonth,
   onOpenNotes,
   onOpenShopping,
+  onOpenRecipes,
+  onOpenStickers,
+  onOpenSettings,
+  weatherDescription,
 }) => {
   const currentMonthIndex = new Date().getMonth();
   const availableYears = [2026, 2027, 2028, 2029, 2030, 2031, 2032];
 
   return (
-    <div className="bg-dot-grid min-h-[calc(100vh-5rem)] py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[calc(100vh-5rem)] py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Hero Banner / Title */}
@@ -35,6 +43,11 @@ export const HomeCalendar: React.FC<HomeCalendarProps> = ({
                   <span>Planner Financeiro Pessoal</span>
                 </span>
                 <span className="text-xs text-[#717972] font-semibold">• Ano {selectedYear}</span>
+                {weatherDescription && (
+                  <span className="text-xs text-[#3B6E52] font-semibold px-2.5 py-0.5 rounded-full bg-[#E8F2EC] border border-[#C0C9C1]">
+                    {weatherDescription}
+                  </span>
+                )}
               </div>
               <h2 className="font-heading text-4xl sm:text-5xl font-bold text-[#1F1B14] tracking-tight">
                 Controle de Gastos & Orçamento
@@ -87,30 +100,68 @@ export const HomeCalendar: React.FC<HomeCalendarProps> = ({
                   <span className="text-[11px] text-[#B7EECB]">Ano {selectedYear}</span>
                 </div>
               </button>
+
+              {/* Botão de Receitas ao lado do Orçamento */}
+              <button
+                onClick={onOpenRecipes}
+                className="paper-card p-4 rounded-2xl flex items-center space-x-3 hover:border-[#E08775] transition-all group bg-[#FFF5F2]"
+                title="Caderno de Receitas Econômicas & Práticas"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#FADCD5] flex items-center justify-center text-[#9E3924] group-hover:scale-110 transition-transform">
+                  <UtensilsCrossed className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <span className="block font-heading font-bold text-sm text-[#1F1B14]">Receitas</span>
+                  <span className="text-[11px] text-[#E08775] font-semibold">🍳 Práticas &amp; R$</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Calendar Grid Header & Year Selector */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-[#EDE4D8] pb-4 px-2 gap-4">
+        {/* Calendar Grid Header & Upper Controls (Ano + Adesivos + Tempo do App) */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b-2 border-[#EDE4D8] pb-4 px-2 gap-4">
           <div className="flex items-center space-x-2">
             <Calendar className="w-6 h-6 text-[#3B6E52]" />
             <h3 className="font-heading text-2xl font-bold text-[#1F1B14]">Calendário Anual de Orçamento</h3>
           </div>
 
-          {/* Year selector dropdown */}
-          <div className="flex items-center space-x-2 bg-[#F5EFEB] p-1.5 rounded-xl border border-[#EDE4D8]">
-            <span className="text-xs font-heading font-bold text-[#717972] px-2">Selecionar Ano:</span>
-            <select
-              value={selectedYear}
-              onChange={(e) => onSelectYear(Number(e.target.value))}
-              aria-label="Selecionar ano do calendário"
-              className="bg-[#3B6E52] text-white rounded-lg px-3.5 py-1.5 text-sm font-heading font-bold focus:outline-none shadow-xs"
+          {/* Upper Toolbar: Ano ao lado do Pop-up de Adesivo e Botão de Configuração de Tempo */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Year selector dropdown */}
+            <div className="flex items-center space-x-2 bg-[#F5EFEB] p-1.5 rounded-xl border border-[#EDE4D8]">
+              <span className="text-xs font-heading font-bold text-[#717972] px-2">Ano:</span>
+              <select
+                value={selectedYear}
+                onChange={(e) => onSelectYear(Number(e.target.value))}
+                aria-label="Selecionar ano do calendário"
+                className="bg-[#3B6E52] text-white rounded-lg px-3.5 py-1.5 text-sm font-heading font-bold focus:outline-none shadow-xs cursor-pointer"
+              >
+                {availableYears.map((yr) => (
+                  <option key={yr} value={yr}>📅 {yr}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Botão de Adesivos (Pop-up do adesivo na parte superior ao lado de mudar o ano) */}
+            <button
+              onClick={onOpenStickers}
+              className="px-3.5 py-2 rounded-xl text-xs font-heading font-bold flex items-center space-x-1.5 bg-[#F5EFEB] text-[#3B6E52] hover:bg-[#E8F2EC] border border-[#EDE4D8] transition-all shadow-xs hover:scale-105"
+              title="Abrir pop-up de adesivos decorativos"
             >
-              {availableYears.map((yr) => (
-                <option key={yr} value={yr}>📅 {yr}</option>
-              ))}
-            </select>
+              <Palette className="w-4 h-4 text-[#E08775]" />
+              <span>Adesivos</span>
+            </button>
+
+            {/* Botão de Configuração (Mudar o tempo do app) */}
+            <button
+              onClick={onOpenSettings}
+              className="px-3.5 py-2 rounded-xl text-xs font-heading font-bold flex items-center space-x-1.5 bg-[#F5EFEB] text-[#1F1B14] hover:bg-[#EDE4D8] border border-[#EDE4D8] transition-all shadow-xs hover:scale-105"
+              title="Configurações: Mudar o clima e tempo do app"
+            >
+              <Clock className="w-4 h-4 text-[#3B6E52]" />
+              <span>Tempo do App ⚙️</span>
+            </button>
           </div>
         </div>
 

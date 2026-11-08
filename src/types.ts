@@ -105,7 +105,35 @@ export interface FreeNote {
   date: string;
 }
 
-export type ViewState = 'home' | 'spreadsheet' | 'notes' | 'shopping';
+export type ViewState = 'home' | 'spreadsheet' | 'notes' | 'shopping' | 'recipes';
+
+export interface RecipeIngredient {
+  name: string;
+  cost: string; // e.g. "R$ 3,20"
+}
+
+export interface RecipeStep {
+  title: string;
+  desc: string;
+}
+
+export interface RecipeItem {
+  id: string;
+  title: string;
+  category: string;
+  time: string;
+  yield: string;
+  cost: string;
+  tip: string;
+  imageUrl?: string;
+  isFavorite?: boolean;
+  notes?: string; // post-it note
+  sourceUrl?: string; // Real website link found via Google Search
+  sourceTitle?: string; // e.g., "Panelinha", "TudoGostoso", "Google Culinária"
+  sourceDomain?: string; // e.g., "tudogostoso.com.br"
+  ingredients: RecipeIngredient[];
+  steps: RecipeStep[];
+}
 
 export interface StickerPreset {
   id: string;
@@ -137,3 +165,66 @@ export interface PlacedSticker {
   scale: number; // e.g. 1
   viewKey: string;
 }
+
+export type AppWeather = 'ensolarado' | 'chuva' | 'outono' | 'primavera' | 'inverno' | 'noite';
+
+export type AppColorThemeId =
+  | 'sage-classic'
+  | 'sakura-rose'
+  | 'coffee-kraft'
+  | 'lavender-dream'
+  | 'ocean-breeze'
+  | 'autumn-terracotta'
+  | 'midnight-black'
+  | 'wine-burgundy'
+  | 'navy-midnight'
+  | 'emerald-forest'
+  | 'dark-kraft'
+  | 'matcha-bamboo'
+  | 'chamomile-gold'
+  | 'gothic-rose';
+
+export interface AppThemeConfig {
+  id: AppColorThemeId;
+  name: string;
+  emoji: string;
+  primaryColor: string;
+  primaryBg: string;
+  accentColor: string;
+  paperBgColor: string;
+  headerBg: string;
+  borderColor: string;
+  cardBg: string;
+  tagline: string;
+  isDark?: boolean;
+  textColor?: string;
+  headingColor?: string;
+  subtextColor?: string;
+}
+
+export interface AppSettings {
+  weather: AppWeather;
+  weatherDescription: string;
+  weatherTemp: string;
+  customDate: string; // YYYY-MM-DD or empty for real device date
+  paperPattern:
+    | 'dot-grid'
+    | 'dot-grid-dark'
+    | 'lined'
+    | 'lined-dark'
+    | 'plain'
+    | 'plain-dark'
+    | 'botanical'
+    | 'botanical-dark'
+    | 'kraft'
+    | 'kraft-dark'
+    | 'grid-school'
+    | 'grid-school-dark';
+  focusTimerDuration: number; // in minutes (e.g. 25)
+  timerSecondsLeft: number;
+  isTimerRunning: boolean;
+  showPiggyAssistant?: boolean; // Opção para manter ou ocultar o porquinho
+  themeId?: AppColorThemeId; // Tema de cores completo do app
+  customBackgroundImage?: string; // Imagem ou padrão aleatório de fundo
+}
+

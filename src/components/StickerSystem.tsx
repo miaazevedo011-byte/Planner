@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StickerPreset, PlacedSticker } from '../types';
-import { Sparkles, Trash2, RotateCw, ZoomIn, ZoomOut, Lock, Unlock, X, Move, Plus, Heart, Palette } from 'lucide-react';
+import { StickerPreset, PlacedSticker, AppColorThemeId } from '../types';
+import { APP_COLOR_THEMES, BACKGROUND_TEXTURE_PRESETS } from '../constants/themes';
+import { Sparkles, Trash2, RotateCw, ZoomIn, ZoomOut, Lock, Unlock, X, Palette, Check, Dices } from 'lucide-react';
 
 export const STICKER_PRESETS: StickerPreset[] = [
   // --- WASHI TAPES ---
@@ -205,10 +206,29 @@ export const STICKER_PRESETS: StickerPreset[] = [
 
 interface StickerSystemProps {
   viewKey: string;
+  isDrawerOpen?: boolean;
+  onToggleDrawer?: () => void;
+  onCloseDrawer?: () => void;
   children?: React.ReactNode;
+  currentThemeId?: AppColorThemeId;
+  onSelectTheme?: (themeId: AppColorThemeId) => void;
+  currentPattern?: string;
+  onSelectPattern?: (pattern: any) => void;
+  onSelectRandomTheme?: () => void;
 }
 
-export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children }) => {
+export const StickerSystem: React.FC<StickerSystemProps> = ({
+  viewKey,
+  isDrawerOpen: controlledDrawerOpen,
+  onToggleDrawer,
+  onCloseDrawer,
+  children,
+  currentThemeId = 'sage-classic',
+  onSelectTheme,
+  currentPattern = 'dot-grid',
+  onSelectPattern,
+  onSelectRandomTheme,
+}) => {
   const storageKey = `personal_finance_placed_stickers_${viewKey}`;
 
   const [placedStickers, setPlacedStickers] = useState<PlacedSticker[]>(() => {
@@ -216,10 +236,28 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [internalDrawerOpen, setInternalDrawerOpen] = useState(false);
+  const isDrawerOpen = controlledDrawerOpen !== undefined ? controlledDrawerOpen : internalDrawerOpen;
+
+  const handleCloseDrawer = () => {
+    if (onCloseDrawer) {
+      onCloseDrawer();
+    } else {
+      setInternalDrawerOpen(false);
+    }
+  };
+
+  const handleToggle = () => {
+    if (onToggleDrawer) {
+      onToggleDrawer();
+    } else {
+      setInternalDrawerOpen(!internalDrawerOpen);
+    }
+  };
+
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'washi' | 'stamp' | 'badge' | 'icon'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'washi' | 'stamp' | 'badge' | 'icon' | 'themes'>('all');
 
   const boardRef = useRef<HTMLDivElement>(null);
 
@@ -261,12 +299,12 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
       textStyle: preset.textStyle,
       x: posX,
       y: posY,
-      rotation: Math.floor(Math.random() * 14 - 7), // slight organic tilt
+      rotation: Math.floor(Math.random() * 14 - 7),
       scale: 1,
       viewKey,
     };
 
-    setPlacedStickers(prev => [...prev, newSticker]);
+    setPlacedStickers((prev) => [...prev, newSticker]);
     setSelectedStickerId(newSticker.id);
   };
 
@@ -280,7 +318,7 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
     if (!board) return;
     const rect = board.getBoundingClientRect();
 
-    const sticker = placedStickers.find(s => s.id === stickerId);
+    const sticker = placedStickers.find((s) => s.id === stickerId);
     if (!sticker) return;
 
     const startX = e.clientX;
@@ -295,8 +333,8 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
       const newX = Math.max(1, Math.min(92, origX + deltaX));
       const newY = Math.max(1, Math.min(95, origY + deltaY));
 
-      setPlacedStickers(prev =>
-        prev.map(s => (s.id === stickerId ? { ...s, x: newX, y: newY } : s))
+      setPlacedStickers((prev) =>
+        prev.map((s) => (s.id === stickerId ? { ...s, x: newX, y: newY } : s))
       );
     };
 
@@ -311,14 +349,14 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
 
   // Sticker actions
   const handleRotate = (stickerId: string, amount: number) => {
-    setPlacedStickers(prev =>
-      prev.map(s => (s.id === stickerId ? { ...s, rotation: (s.rotation + amount) % 360 } : s))
+    setPlacedStickers((prev) =>
+      prev.map((s) => (s.id === stickerId ? { ...s, rotation: (s.rotation + amount) % 360 } : s))
     );
   };
 
   const handleScale = (stickerId: string, factor: number) => {
-    setPlacedStickers(prev =>
-      prev.map(s => {
+    setPlacedStickers((prev) =>
+      prev.map((s) => {
         if (s.id === stickerId) {
           const nextScale = Math.max(0.5, Math.min(2.2, Number((s.scale + factor).toFixed(2))));
           return { ...s, scale: nextScale };
@@ -329,7 +367,7 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
   };
 
   const handleDeleteSticker = (stickerId: string) => {
-    setPlacedStickers(prev => prev.filter(s => s.id !== stickerId));
+    setPlacedStickers((prev) => prev.filter((s) => s.id !== stickerId));
     if (selectedStickerId === stickerId) setSelectedStickerId(null);
   };
 
@@ -341,7 +379,9 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
     }
   };
 
-  const filteredPresets = STICKER_PRESETS.filter(p => activeTab === 'all' || p.category === activeTab);
+  const filteredPresets = STICKER_PRESETS.filter(
+    (p) => activeTab === 'all' || p.category === activeTab
+  );
 
   return (
     <div
@@ -349,52 +389,36 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
       className="relative min-h-screen"
       onClick={() => setSelectedStickerId(null)}
     >
-      {/* Floating Toolbar for Stickers (Top-Right under header) */}
-      <div className="fixed top-24 right-4 z-30 flex items-center space-x-2 bg-[#FDFBF7] p-2 rounded-2xl border-2 border-[#EDE4D8] shadow-md backdrop-blur-xs">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsDrawerOpen(!isDrawerOpen);
-          }}
-          className={`px-3 py-2 rounded-xl text-xs font-heading font-bold flex items-center space-x-1.5 transition-all ${
-            isDrawerOpen
-              ? 'bg-[#3B6E52] text-white shadow-xs scale-105'
-              : 'bg-[#F5EFEB] text-[#3B6E52] hover:bg-[#E8F2EC] border border-[#EDE4D8]'
-          }`}
-          title="Abrir Gaveta de Adesivos e Washi Tapes"
-        >
-          <Palette className="w-4 h-4 text-[#E08775]" />
-          <span>Adesivos ({placedStickers.length})</span>
-        </button>
+      {/* Floating Toolbar for quick lock/unlock and clear in the upper-right corner */}
+      {placedStickers.length > 0 && (
+        <div className="fixed top-24 right-4 z-30 flex items-center space-x-1.5 bg-[#FDFBF7] p-1.5 rounded-2xl border border-[#EDE4D8] shadow-sm backdrop-blur-xs">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsLocked(!isLocked);
+            }}
+            className={`p-1.5 rounded-xl text-xs transition-all ${
+              isLocked
+                ? 'bg-[#E08775] text-white'
+                : 'bg-[#F5EFEB] text-[#717972] hover:text-[#1F1B14] border border-[#EDE4D8]'
+            }`}
+            title={isLocked ? 'Adesivos bloqueados (clique para desbloquear)' : 'Adesivos móveis (clique para travar)'}
+          >
+            {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+          </button>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsLocked(!isLocked);
-          }}
-          className={`p-2 rounded-xl text-xs transition-all ${
-            isLocked
-              ? 'bg-[#E08775] text-white'
-              : 'bg-[#F5EFEB] text-[#717972] hover:text-[#1F1B14] border border-[#EDE4D8]'
-          }`}
-          title={isLocked ? 'Adesivos bloqueados (clique para desbloquear)' : 'Adesivos móveis (clique para travar)'}
-        >
-          {isLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-        </button>
-
-        {placedStickers.length > 0 && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleClearAll();
             }}
-            className="p-2 rounded-xl text-xs bg-[#F5EFEB] text-[#BA1A1A] hover:bg-[#FFDAD6] border border-[#EDE4D8]"
+            className="p-1.5 rounded-xl text-xs bg-[#F5EFEB] text-[#BA1A1A] hover:bg-[#FFDAD6] border border-[#EDE4D8]"
             title="Remover todos os adesivos desta tela"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Main View Content */}
       {children}
@@ -414,19 +438,25 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
               touchAction: 'none',
             }}
             className={`absolute z-20 cursor-grab active:cursor-grabbing select-none transition-shadow ${
-              isSelected ? 'ring-2 ring-[#3B6E52] ring-offset-2 ring-offset-[#FFF8F2] shadow-xl' : 'hover:opacity-95 shadow-md'
+              isSelected
+                ? 'ring-2 ring-[#3B6E52] ring-offset-2 ring-offset-[#FFF8F2] shadow-xl'
+                : 'hover:opacity-95 shadow-md'
             }`}
           >
             {/* WASHI TAPE STICKER */}
             {sticker.category === 'washi' && (
-              <div className={`px-4 py-2 flex items-center justify-center space-x-2 font-heading font-bold text-xs shadow-xs rounded-xs ${sticker.bgStyle}`}>
+              <div
+                className={`px-4 py-2 flex items-center justify-center space-x-2 font-heading font-bold text-xs shadow-xs rounded-xs ${sticker.bgStyle}`}
+              >
                 <span>{sticker.label || sticker.name}</span>
               </div>
             )}
 
             {/* STAMP STICKER */}
             {sticker.category === 'stamp' && (
-              <div className={`p-3 flex flex-col items-center justify-center text-center space-y-0.5 font-heading font-bold text-xs shadow-xs ${sticker.bgStyle}`}>
+              <div
+                className={`p-3 flex flex-col items-center justify-center text-center space-y-0.5 font-heading font-bold text-xs shadow-xs ${sticker.bgStyle}`}
+              >
                 {sticker.icon && <span className="text-2xl leading-none">{sticker.icon}</span>}
                 {sticker.label && <span className="text-[11px] tracking-tight">{sticker.label}</span>}
               </div>
@@ -434,7 +464,9 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
 
             {/* BADGE STICKER */}
             {sticker.category === 'badge' && (
-              <div className={`px-3 py-1.5 flex items-center space-x-1.5 text-xs font-heading font-bold shadow-xs ${sticker.bgStyle}`}>
+              <div
+                className={`px-3 py-1.5 flex items-center space-x-1.5 text-xs font-heading font-bold shadow-xs ${sticker.bgStyle}`}
+              >
                 {sticker.icon && <span>{sticker.icon}</span>}
                 <span>{sticker.label || sticker.name}</span>
               </div>
@@ -494,11 +526,11 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
         );
       })}
 
-      {/* DRAWER / STICKER BOOK PANEL */}
+      {/* POP-UP DO ADESIVO NA PARTE SUPERIOR (Anchor at top right near Year option) */}
       {isDrawerOpen && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="fixed bottom-0 right-0 left-0 sm:left-auto sm:right-6 sm:bottom-6 z-50 w-full sm:w-96 paper-card rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border-2 border-[#3B6E52] max-h-[80vh] flex flex-col animate-in slide-in-from-bottom"
+          className="fixed top-20 sm:top-24 right-2 sm:right-6 z-50 w-[94vw] sm:w-[410px] paper-card rounded-3xl p-5 shadow-2xl border-2 border-[#3B6E52] max-h-[82vh] flex flex-col animate-in slide-in-from-top-4 bg-[#FDFBF7]"
         >
           <div className="washi-tape-top"></div>
 
@@ -506,104 +538,310 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({ viewKey, children 
           <div className="flex items-center justify-between border-b border-[#EDE4D8] pb-3 mb-3">
             <div className="flex items-center space-x-2">
               <Palette className="w-5 h-5 text-[#E08775]" />
-              <h3 className="font-heading font-bold text-lg text-[#1F1B14]">Caderno de Adesivos</h3>
+              <h3 className="font-heading font-bold text-lg text-[#1F1B14]">Adesivos & Washi Tapes</h3>
             </div>
             <button
-              onClick={() => setIsDrawerOpen(false)}
-              className="p-1.5 text-[#717972] hover:text-[#1F1B14] rounded-lg"
+              onClick={handleCloseDrawer}
+              aria-label="Fechar pop-up de adesivos"
+              className="p-1.5 text-[#717972] hover:text-[#1F1B14] hover:bg-[#F5EFEB] rounded-xl transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           <p className="text-xs text-[#717972] mb-3">
-            Clique em qualquer adesivo para colocá-lo na tela e arraste para organizar!
+            Clique no adesivo desejado para colá-lo na tela e arraste para posicionar!
           </p>
 
           {/* Category Tabs */}
-          <div className="flex space-x-1 mb-4 bg-[#F5EFEB] p-1 rounded-xl border border-[#EDE4D8] overflow-x-auto scrollbar-none">
+          <div className="flex space-x-1 mb-3.5 bg-[#F5EFEB] p-1 rounded-xl border border-[#EDE4D8] overflow-x-auto scrollbar-none">
             <button
-              onClick={() => setActiveTab('all')}
-              className={`px-3 py-1 rounded-lg text-xs font-heading font-semibold whitespace-nowrap ${
-                activeTab === 'all' ? 'bg-[#3B6E52] text-white' : 'text-[#414943]'
+              onClick={() => setActiveTab('themes')}
+              className={`px-3 py-1 rounded-lg text-xs font-heading font-extrabold whitespace-nowrap transition-all flex items-center space-x-1.5 shadow-2xs ${
+                activeTab === 'themes'
+                  ? 'bg-[#93493A] text-white shadow-xs'
+                  : 'text-[#93493A] bg-[#FFF0ED] hover:bg-[#FFDAD3]'
               }`}
             >
-              Todos
+              <Palette className="w-3.5 h-3.5 text-current" />
+              <span>🎨 Temas do App</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-heading font-semibold whitespace-nowrap transition-all ${
+                activeTab === 'all' ? 'bg-[#3B6E52] text-white shadow-xs' : 'text-[#414943]'
+              }`}
+            >
+              Adesivos
             </button>
             <button
               onClick={() => setActiveTab('washi')}
-              className={`px-3 py-1 rounded-lg text-xs font-heading font-semibold whitespace-nowrap ${
-                activeTab === 'washi' ? 'bg-[#3B6E52] text-white' : 'text-[#414943]'
+              className={`px-2.5 py-1 rounded-lg text-xs font-heading font-semibold whitespace-nowrap transition-all ${
+                activeTab === 'washi' ? 'bg-[#3B6E52] text-white shadow-xs' : 'text-[#414943]'
               }`}
             >
               Washi Tape
             </button>
             <button
               onClick={() => setActiveTab('stamp')}
-              className={`px-3 py-1 rounded-lg text-xs font-heading font-semibold whitespace-nowrap ${
-                activeTab === 'stamp' ? 'bg-[#3B6E52] text-white' : 'text-[#414943]'
+              className={`px-2.5 py-1 rounded-lg text-xs font-heading font-semibold whitespace-nowrap transition-all ${
+                activeTab === 'stamp' ? 'bg-[#3B6E52] text-white shadow-xs' : 'text-[#414943]'
               }`}
             >
-              Carimbos & Selos
+              Carimbos
             </button>
             <button
               onClick={() => setActiveTab('badge')}
-              className={`px-3 py-1 rounded-lg text-xs font-heading font-semibold whitespace-nowrap ${
-                activeTab === 'badge' ? 'bg-[#3B6E52] text-white' : 'text-[#414943]'
+              className={`px-2.5 py-1 rounded-lg text-xs font-heading font-semibold whitespace-nowrap transition-all ${
+                activeTab === 'badge' ? 'bg-[#3B6E52] text-white shadow-xs' : 'text-[#414943]'
               }`}
             >
               Emblemas
             </button>
             <button
               onClick={() => setActiveTab('icon')}
-              className={`px-3 py-1 rounded-lg text-xs font-heading font-semibold whitespace-nowrap ${
-                activeTab === 'icon' ? 'bg-[#3B6E52] text-white' : 'text-[#414943]'
+              className={`px-2.5 py-1 rounded-lg text-xs font-heading font-semibold whitespace-nowrap transition-all ${
+                activeTab === 'icon' ? 'bg-[#3B6E52] text-white shadow-xs' : 'text-[#414943]'
               }`}
             >
               Figurinhas
             </button>
           </div>
 
-          {/* Sticker Presets Grid */}
-          <div className="overflow-y-auto flex-1 grid grid-cols-2 gap-3 p-1 max-h-72 border border-[#EDE4D8] rounded-2xl bg-[#FAF4EB]/60">
-            {filteredPresets.map((preset) => (
+          {/* VIEW: SELEÇÃO DE TEMAS COMPLETOS DO APP */}
+          {activeTab === 'themes' ? (
+            <div className="overflow-y-auto flex-1 space-y-3.5 p-1 max-h-[54vh] border border-[#EDE4D8] rounded-2xl bg-[#FAF4EB]/60">
+              {/* Botão Tema Surpresa / Aleatório */}
               <button
-                key={preset.id}
-                onClick={() => handleAddPreset(preset)}
-                className="p-3 bg-[#FDFBF7] border border-[#EDE4D8] hover:border-[#3B6E52] rounded-xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all hover:scale-105 group relative shadow-xs"
+                onClick={() => {
+                  if (onSelectRandomTheme) {
+                    onSelectRandomTheme();
+                  } else {
+                    const randomTheme = APP_COLOR_THEMES[Math.floor(Math.random() * APP_COLOR_THEMES.length)];
+                    if (onSelectTheme) onSelectTheme(randomTheme.id);
+                  }
+                }}
+                className="w-full bg-[#FFF5F2] hover:bg-[#FFDAD3] text-[#783527] border-2 border-dashed border-[#E08775] rounded-2xl p-3 flex items-center justify-center space-x-2 font-heading font-bold text-xs shadow-xs active:scale-98 transition-all cursor-pointer group"
               >
-                {preset.category === 'washi' && (
-                  <div className={`w-full py-1 text-[11px] font-heading font-bold ${preset.bgStyle}`}>
-                    <span>{preset.label || preset.name}</span>
-                  </div>
-                )}
-
-                {preset.category === 'stamp' && (
-                  <div className={`p-2 font-heading font-bold text-xs ${preset.bgStyle}`}>
-                    {preset.icon && <span className="text-xl block">{preset.icon}</span>}
-                    {preset.label && <span className="text-[10px]">{preset.label}</span>}
-                  </div>
-                )}
-
-                {preset.category === 'badge' && (
-                  <div className={`px-2.5 py-1 text-[11px] font-heading font-bold ${preset.bgStyle}`}>
-                    {preset.icon && <span className="mr-1">{preset.icon}</span>}
-                    <span>{preset.label || preset.name}</span>
-                  </div>
-                )}
-
-                {preset.category === 'icon' && (
-                  <div className={`p-2 text-2xl ${preset.bgStyle}`}>
-                    <span>{preset.icon}</span>
-                  </div>
-                )}
-
-                <span className="text-[10px] font-heading text-[#717972] group-hover:text-[#3B6E52] font-medium">
-                  {preset.name}
-                </span>
+                <Dices className="w-4 h-4 text-[#E08775] group-hover:rotate-180 transition-transform" />
+                <span>🎲 Aplicar Tema Surpresa / Aleatório</span>
               </button>
-            ))}
-          </div>
+
+              {/* Seção 1: Paletas de Cores Completas (Claras e Escuras) */}
+              <div className="space-y-3">
+                {/* Temas Noturnos & Escuros */}
+                <div>
+                  <span className="text-[11px] font-heading font-bold uppercase tracking-wider text-[#93493A] px-1 flex items-center gap-1 mb-1.5">
+                    <span>🌙 Temas Noturnos &amp; Escuros (Texto Claro)</span>
+                  </span>
+                  <div className="grid grid-cols-1 gap-2">
+                    {APP_COLOR_THEMES.filter(t => t.isDark).map((theme) => {
+                      const isSelected = currentThemeId === theme.id;
+                      return (
+                        <button
+                          key={theme.id}
+                          onClick={() => onSelectTheme && onSelectTheme(theme.id)}
+                          className={`p-3 rounded-2xl border-2 text-left flex items-center justify-between transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-[#E6C280] ring-2 ring-[#E6C280]/40 shadow-xs scale-[1.01]'
+                              : 'border-[#3D332B] hover:border-[#E6C280]/60'
+                          }`}
+                          style={{ backgroundColor: theme.paperBgColor, color: theme.textColor || '#F5F2EB' }}
+                        >
+                          <div className="flex items-center space-x-3 min-w-0">
+                            <div className="flex items-center -space-x-1.5 shrink-0">
+                              <span
+                                className="w-5 h-5 rounded-full border border-[#2E3342] shadow-2xs"
+                                style={{ backgroundColor: theme.primaryColor }}
+                              />
+                              <span
+                                className="w-5 h-5 rounded-full border border-[#2E3342] shadow-2xs"
+                                style={{ backgroundColor: theme.accentColor }}
+                              />
+                              <span
+                                className="w-5 h-5 rounded-full border border-[#2E3342] shadow-2xs"
+                                style={{ backgroundColor: theme.cardBg }}
+                              />
+                            </div>
+
+                            <div className="min-w-0">
+                              <div className="flex items-center space-x-1.5">
+                                <span className="text-sm">{theme.emoji}</span>
+                                <h4 className="font-heading font-bold text-xs truncate" style={{ color: theme.textColor || '#F5F2EB' }}>
+                                  {theme.name}
+                                </h4>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#2E3342] text-[#E6C280] font-heading font-bold shrink-0">
+                                  Noturno 🌙
+                                </span>
+                              </div>
+                              <p className="text-[10px] opacity-80 mt-0.5 truncate">
+                                {theme.tagline}
+                              </p>
+                            </div>
+                          </div>
+
+                          {isSelected && (
+                            <div className="w-5 h-5 rounded-full bg-[#E6C280] text-[#12141A] flex items-center justify-center shrink-0 ml-2">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Temas Claros Culinários & Papelaria */}
+                <div>
+                  <span className="text-[11px] font-heading font-bold uppercase tracking-wider text-[#3B6E52] px-1 flex items-center gap-1 mb-1.5">
+                    <span>☀️ Temas Claros &amp; Papelaria Acolhedora</span>
+                  </span>
+                  <div className="grid grid-cols-1 gap-2">
+                    {APP_COLOR_THEMES.filter(t => !t.isDark).map((theme) => {
+                      const isSelected = currentThemeId === theme.id;
+                      return (
+                        <button
+                          key={theme.id}
+                          onClick={() => onSelectTheme && onSelectTheme(theme.id)}
+                          className={`p-3 rounded-2xl border-2 text-left flex items-center justify-between transition-all bg-[#FDFBF7] cursor-pointer ${
+                            isSelected
+                              ? 'border-[#3B6E52] ring-2 ring-[#B7EECB]/60 shadow-xs scale-[1.01]'
+                              : 'border-[#EDE4D8] hover:border-[#3B6E52]/50 hover:bg-[#FFFDF9]'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3 min-w-0">
+                            <div className="flex items-center -space-x-1.5 shrink-0">
+                              <span
+                                className="w-5 h-5 rounded-full border border-white shadow-2xs"
+                                style={{ backgroundColor: theme.primaryColor }}
+                              />
+                              <span
+                                className="w-5 h-5 rounded-full border border-white shadow-2xs"
+                                style={{ backgroundColor: theme.accentColor }}
+                              />
+                              <span
+                                className="w-5 h-5 rounded-full border border-[#EDE4D8] shadow-2xs"
+                                style={{ backgroundColor: theme.cardBg }}
+                              />
+                            </div>
+
+                            <div className="min-w-0">
+                              <div className="flex items-center space-x-1.5">
+                                <span className="text-sm">{theme.emoji}</span>
+                                <h4 className="font-heading font-bold text-xs text-[#1F1B14] truncate">
+                                  {theme.name}
+                                </h4>
+                              </div>
+                              <p className="text-[10px] text-[#717972] mt-0.5 truncate">
+                                {theme.tagline}
+                              </p>
+                            </div>
+                          </div>
+
+                          {isSelected && (
+                            <div className="w-5 h-5 rounded-full bg-[#3B6E52] text-white flex items-center justify-center shrink-0 ml-2">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Seção 2: Padrão do Papel de Fundo (Texturas Claras e Noturnas) */}
+              <div className="space-y-2 pt-2 border-t border-[#EDE4D8]/80">
+                <span className="text-[11px] font-heading font-bold uppercase tracking-wider text-[#717972] px-1 block">
+                  Texturas de Papel Artesanal ({BACKGROUND_TEXTURE_PRESETS.length} Opções)
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {BACKGROUND_TEXTURE_PRESETS.map((pat) => {
+                    let cleanId = pat.id;
+                    if (pat.id === 'pattern-dot') cleanId = 'dot-grid';
+                    else if (pat.id === 'pattern-dot-dark') cleanId = 'dot-grid-dark';
+                    else if (pat.id === 'pattern-lined') cleanId = 'lined';
+                    else if (pat.id === 'pattern-lined-dark') cleanId = 'lined-dark';
+                    else if (pat.id === 'pattern-plain') cleanId = 'plain';
+                    else if (pat.id === 'pattern-plain-dark') cleanId = 'plain-dark';
+                    else if (pat.id === 'texture-botanical') cleanId = 'botanical';
+                    else if (pat.id === 'texture-botanical-dark') cleanId = 'botanical-dark';
+                    else if (pat.id === 'texture-kraft') cleanId = 'kraft';
+                    else if (pat.id === 'texture-kraft-dark') cleanId = 'kraft-dark';
+                    else if (pat.id === 'texture-grid-school') cleanId = 'grid-school';
+                    else if (pat.id === 'texture-grid-dark') cleanId = 'grid-school-dark';
+
+                    const isPatSelected = currentPattern === cleanId;
+
+                    return (
+                      <button
+                        key={pat.id}
+                        onClick={() => {
+                          if (onSelectPattern) onSelectPattern(cleanId);
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          pat.isDark ? 'bg-[#1A1D26] text-[#F5F2EB]' : 'bg-[#FDFBF7] text-[#414943]'
+                        } ${
+                          isPatSelected
+                            ? 'border-[#3B6E52] ring-2 ring-[#B7EECB]/60 shadow-2xs font-bold'
+                            : 'border-[#EDE4D8] hover:border-[#3B6E52]/40'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-1.5">
+                          <span>{pat.emoji}</span>
+                          <div className="min-w-0">
+                            <span className="text-[11px] font-heading block truncate">{pat.name.split(' (')[0]}</span>
+                            <span className="text-[9px] opacity-70 block truncate">{pat.isDark ? 'Fundo Escuro' : 'Fundo Claro'}</span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Sticker Presets Grid */
+            <div className="overflow-y-auto flex-1 grid grid-cols-2 gap-2.5 p-1 max-h-[52vh] border border-[#EDE4D8] rounded-2xl bg-[#FAF4EB]/60">
+              {filteredPresets.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => handleAddPreset(preset)}
+                  className="p-3 bg-[#FDFBF7] border border-[#EDE4D8] hover:border-[#3B6E52] rounded-xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all hover:scale-105 group relative shadow-xs"
+                >
+                  {preset.category === 'washi' && (
+                    <div className={`w-full py-1 text-[11px] font-heading font-bold ${preset.bgStyle}`}>
+                      <span>{preset.label || preset.name}</span>
+                    </div>
+                  )}
+
+                  {preset.category === 'stamp' && (
+                    <div className={`p-2 font-heading font-bold text-xs ${preset.bgStyle}`}>
+                      {preset.icon && <span className="text-xl block">{preset.icon}</span>}
+                      {preset.label && <span className="text-[10px]">{preset.label}</span>}
+                    </div>
+                  )}
+
+                  {preset.category === 'badge' && (
+                    <div className={`px-2.5 py-1 text-[11px] font-heading font-bold ${preset.bgStyle}`}>
+                      {preset.icon && <span className="mr-1">{preset.icon}</span>}
+                      <span>{preset.label || preset.name}</span>
+                    </div>
+                  )}
+
+                  {preset.category === 'icon' && (
+                    <div className={`p-2 text-2xl ${preset.bgStyle}`}>
+                      <span>{preset.icon}</span>
+                    </div>
+                  )}
+
+                  <span className="text-[10px] font-heading text-[#717972] group-hover:text-[#3B6E52] font-medium">
+                    {preset.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
