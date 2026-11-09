@@ -175,13 +175,19 @@ export type AppColorThemeId =
   | 'lavender-dream'
   | 'ocean-breeze'
   | 'autumn-terracotta'
+  | 'matcha-bamboo'
+  | 'chamomile-gold'
+  | 'vanilla-biscuit'
+  | 'mint-cream'
+  | 'peach-blossom'
+  | 'sunflower-butter'
+  | 'blueberry-muffin'
+  | 'honey-almond'
   | 'midnight-black'
   | 'wine-burgundy'
   | 'navy-midnight'
   | 'emerald-forest'
   | 'dark-kraft'
-  | 'matcha-bamboo'
-  | 'chamomile-gold'
   | 'gothic-rose';
 
 export interface AppThemeConfig {

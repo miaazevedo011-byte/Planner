@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StickerPreset, PlacedSticker, AppColorThemeId } from '../types';
 import { APP_COLOR_THEMES, BACKGROUND_TEXTURE_PRESETS } from '../constants/themes';
-import { Sparkles, Trash2, RotateCw, ZoomIn, ZoomOut, Lock, Unlock, X, Palette, Check, Dices } from 'lucide-react';
+import { Sparkles, Trash2, RotateCw, ZoomIn, ZoomOut, Lock, Unlock, X, Palette, Check, Dices, Edit3 } from 'lucide-react';
 
 export const STICKER_PRESETS: StickerPreset[] = [
   // --- WASHI TAPES ---
@@ -51,16 +51,16 @@ export const STICKER_PRESETS: StickerPreset[] = [
     height: 'h-8 sm:h-9',
   },
 
-  // --- STAMPS & SEALS ---
+  // --- STAMPS & SEALS (Ampliar Carimbo) ---
   {
     id: 'stamp-piggy',
     category: 'stamp',
     name: 'Selo Porquinho da Sorte',
     icon: '🐖',
     label: 'Poupança Fofa',
-    bgStyle: 'bg-[#E8F2EC] text-[#2A4F3B] border-2 border-dashed border-[#3B6E52] rounded-full',
-    width: 'w-24 sm:w-28',
-    height: 'h-24 sm:h-28',
+    bgStyle: 'bg-[#E8F2EC] text-[#2A4F3B] border-4 border-dashed border-[#3B6E52] rounded-full p-4',
+    width: 'w-32 sm:w-40',
+    height: 'h-32 sm:h-40',
   },
   {
     id: 'stamp-wax-heart',
@@ -68,9 +68,9 @@ export const STICKER_PRESETS: StickerPreset[] = [
     name: 'Selo de Cera Verde',
     icon: '💚',
     label: 'Com Carinho',
-    bgStyle: 'bg-[#3B6E52] text-[#FDFBF7] border-4 border-double border-[#9CD3B1] rounded-full shadow-md',
-    width: 'w-20 sm:w-24',
-    height: 'h-20 sm:h-24',
+    bgStyle: 'bg-[#3B6E52] text-[#FDFBF7] border-4 border-double border-[#9CD3B1] rounded-full shadow-md p-4',
+    width: 'w-32 sm:w-40',
+    height: 'h-32 sm:h-40',
   },
   {
     id: 'stamp-star',
@@ -78,9 +78,9 @@ export const STICKER_PRESETS: StickerPreset[] = [
     name: 'Carimbo Estrela',
     icon: '⭐',
     label: 'Nota 10!',
-    bgStyle: 'bg-[#F7D6D0] text-[#783527] border-2 border-dashed border-[#E08775] rounded-2xl',
-    width: 'w-20 sm:w-24',
-    height: 'h-20 sm:h-24',
+    bgStyle: 'bg-[#F7D6D0] text-[#783527] border-4 border-dashed border-[#E08775] rounded-3xl p-4',
+    width: 'w-32 sm:w-40',
+    height: 'h-32 sm:h-40',
   },
   {
     id: 'stamp-coffee',
@@ -88,19 +88,19 @@ export const STICKER_PRESETS: StickerPreset[] = [
     name: 'Carimbo Pausa Pro Chá',
     icon: '☕',
     label: 'Pausa Calma',
-    bgStyle: 'bg-[#F0E7DB] text-[#414943] border-2 border-dashed border-[#717972] rounded-full',
-    width: 'w-20 sm:w-24',
-    height: 'h-20 sm:h-24',
+    bgStyle: 'bg-[#F0E7DB] text-[#414943] border-4 border-dashed border-[#717972] rounded-full p-4',
+    width: 'w-32 sm:w-40',
+    height: 'h-32 sm:h-40',
   },
   {
     id: 'stamp-approved',
     category: 'stamp',
-    name: 'Carimbo Aprovado',
+    name: 'Carimbo Aprovado Grande',
     icon: '✅',
     label: 'APROVADO!',
-    bgStyle: 'bg-[#E8F2EC] text-[#2A4F3B] border-2 border-solid border-[#3B6E52] rounded-xl transform -rotate-3',
-    width: 'w-28 sm:w-32',
-    height: 'h-16 sm:h-20',
+    bgStyle: 'bg-[#E8F2EC] text-[#2A4F3B] border-4 border-solid border-[#3B6E52] rounded-2xl transform -rotate-3 p-4 shadow-md',
+    width: 'w-36 sm:w-44',
+    height: 'h-24 sm:h-28',
   },
 
   // --- BADGES ---
@@ -358,12 +358,24 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({
     setPlacedStickers((prev) =>
       prev.map((s) => {
         if (s.id === stickerId) {
-          const nextScale = Math.max(0.5, Math.min(2.2, Number((s.scale + factor).toFixed(2))));
+          const nextScale = Math.max(0.4, Math.min(3.0, Number((s.scale + factor).toFixed(2))));
           return { ...s, scale: nextScale };
         }
         return s;
       })
     );
+  };
+
+  const handleRenameSticker = (stickerId: string) => {
+    const sticker = placedStickers.find((s) => s.id === stickerId);
+    if (!sticker) return;
+    const currentName = sticker.label || sticker.name;
+    const newName = window.prompt("Renomear adesivo / carimbo:", currentName);
+    if (newName !== null && newName.trim() !== '') {
+      setPlacedStickers((prev) =>
+        prev.map((s) => (s.id === stickerId ? { ...s, label: newName.trim() } : s))
+      );
+    }
   };
 
   const handleDeleteSticker = (stickerId: string) => {
@@ -512,6 +524,13 @@ export const StickerSystem: React.FC<StickerSystemProps> = ({
                   title="Diminuir tamanho"
                 >
                   <ZoomOut className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => handleRenameSticker(sticker.id)}
+                  className="p-1 hover:bg-white/20 rounded-lg text-[#E6C280]"
+                  title="Alterar nome do adesivo/carimbo"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDeleteSticker(sticker.id)}
